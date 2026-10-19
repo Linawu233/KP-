@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>COC 怪物期望计算器 v5</title>
+<title>COC 怪物期望计算器 v6</title>
 <style>
   :root {
     --bg: #f7f9fc;
@@ -32,23 +32,14 @@
   }
   .wrap { max-width: 960px; margin: 0 auto; }
   
-  h1 {
-    font-size: 24px; color: var(--accent-blue-dark);
-    text-align: center; margin-bottom: 4px;
-    font-weight: 600;
-  }
-  .subtitle {
-    color: var(--text-muted); font-size: 13px;
-    text-align: center; margin-bottom: 30px;
-  }
+  h1 { font-size: 24px; color: var(--accent-blue-dark); text-align: center; margin-bottom: 4px; font-weight: 600; }
+  .subtitle { color: var(--text-muted); font-size: 13px; text-align: center; margin-bottom: 30px; }
   h2 {
-    font-size: 16px; color: var(--text-main);
-    margin: 28px 0 12px; font-weight: 600;
+    font-size: 16px; color: var(--text-main); margin: 28px 0 12px; font-weight: 600;
     display: flex; align-items: center; gap: 8px;
   }
   h2::before {
-    content: ''; display: inline-block;
-    width: 4px; height: 16px; border-radius: 2px;
+    content: ''; display: inline-block; width: 4px; height: 16px; border-radius: 2px;
     background: linear-gradient(to bottom, var(--accent-blue), var(--accent-pink));
   }
 
@@ -57,78 +48,50 @@
   .field { display: flex; flex-direction: column; }
   label { font-size: 13px; color: var(--text-main); margin-bottom: 6px; font-weight: 500; }
   
-  /* 统一输入框样式 */
-  input {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    color: var(--text-main);
-    padding: 0 12px; /* 移除上下 padding，用 height 控制 */
-    height: 40px;
-    border-radius: 8px;
-    font-size: 14px;
-    outline: none;
-    transition: all 0.2s;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
-    width: 100%;
+  /* 统一输入框 */
+  input[type="text"], input[type="number"] {
+    background: var(--panel); border: 1px solid var(--border); color: var(--text-main);
+    padding: 0 12px; height: 40px; border-radius: 8px; font-size: 14px;
+    outline: none; transition: all 0.2s; width: 100%;
   }
   input:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.3); }
   .hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+  /* 开关组件 */
+  .switch-group {
+    display: flex; align-items: center; gap: 10px; margin-top: 4px;
+    background: var(--panel-inner); padding: 8px 12px; border-radius: 8px;
+  }
+  .switch-group input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent-pink-dark); cursor: pointer;}
+  .switch-group label { margin-bottom: 0; cursor: pointer; font-weight: 600;}
 
   /* 按钮 */
   button {
     margin-top: 20px; padding: 0 24px; height: 44px;
     background: linear-gradient(135deg, var(--accent-blue), var(--accent-pink));
     color: #fff; border: none; border-radius: 8px;
-    font-size: 15px; font-weight: 600;
-    cursor: pointer; transition: all 0.3s;
-    box-shadow: var(--shadow);
-    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+    box-shadow: var(--shadow); display: inline-flex; align-items: center; justify-content: center;
   }
   button:hover { opacity: 0.9; transform: translateY(-1px); }
-  button.ghost {
-    background: var(--panel); color: var(--text-main);
-    border: 1px solid var(--border); box-shadow: none;
-  }
+  button.ghost { background: var(--panel); color: var(--text-main); border: 1px solid var(--border); box-shadow: none; }
   button.ghost:hover { background: var(--panel-inner); }
   button.small { height: 36px; padding: 0 16px; font-size: 13px; margin-top: 0; }
 
-  /* 玩家列表 - 完美对齐 */
+  /* 玩家列表 */
   .player-header {
-    display: grid; 
-    /* 伤害(占两倍) 命中 HP 动数 删除按钮 */
-    grid-template-columns: 2fr 1fr 1fr 1fr 40px;
-    gap: 10px; 
-    font-size: 12px; 
-    color: var(--text-muted);
-    margin-bottom: 8px; 
-    padding: 0 4px; 
-    font-weight: 500;
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 40px;
+    gap: 10px; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; padding: 0 4px; font-weight: 500;
   }
   .player-row {
-    display: grid; 
-    grid-template-columns: 2fr 1fr 1fr 1fr 40px;
-    gap: 10px; 
-    margin-bottom: 10px; 
-    align-items: center;
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 40px;
+    gap: 10px; margin-bottom: 10px; align-items: center;
   }
-  
-  /* 统一 Player Row 里所有元素的高度和 Margin */
-  .player-row input {
-    height: 38px;
-    margin: 0;
-  }
+  .player-row input { height: 38px; margin: 0; }
   .player-row button.del {
-    padding: 0; 
-    height: 38px; 
-    width: 38px;
-    font-size: 14px;
-    background: var(--panel); 
-    color: var(--text-muted);
-    border: 1px solid var(--border); 
-    border-radius: 8px;
-    cursor: pointer; 
-    margin-top: 0; 
-    transition: all 0.2s;
+    padding: 0; height: 38px; width: 38px; font-size: 14px;
+    background: var(--panel); color: var(--text-muted); border: 1px solid var(--border);
+    border-radius: 8px; cursor: pointer; margin-top: 0; transition: all 0.2s;
     display: flex; align-items: center; justify-content: center;
   }
   .player-row button.del:hover { background: var(--danger); color: white; border-color: transparent; }
@@ -136,14 +99,11 @@
   /* 单选框 */
   .radio-group { display: flex; gap: 20px; margin-top: 8px; height: 40px; align-items: center;}
   .radio-group label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal; margin-bottom: 0;}
-  .radio-group input[type="radio"] { width: 16px; height: 16px; padding: 0; height: auto; accent-color: var(--accent-pink-dark); }
+  .radio-group input[type="radio"] { width: 16px; height: 16px; padding: 0; accent-color: var(--accent-pink-dark); }
 
   /* 结果面板 */
   .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; }
-  .card {
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 12px; padding: 16px; box-shadow: var(--shadow);
-  }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; box-shadow: var(--shadow); }
   .card .k { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
   .card .v { font-size: 24px; font-weight: 700; color: var(--accent-blue-dark); margin: 4px 0; }
   .card .v.danger { color: var(--danger-text); }
@@ -157,42 +117,22 @@
 
   /* 方案列表 */
   .patterns-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-top: 16px; }
-  .pattern {
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 12px; padding: 18px; position: relative;
-    box-shadow: var(--shadow); overflow: hidden;
-  }
-  .pattern::before {
-    content: ''; position: absolute; top: 0; left: 0;
-    width: 4px; height: 100%; background: var(--accent-blue);
-  }
+  .pattern { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px; position: relative; box-shadow: var(--shadow); overflow: hidden; }
+  .pattern::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent-blue); }
   .pattern.best::before { background: var(--accent-pink-dark); }
-  
-  .pattern .tag {
-    display: inline-block; font-size: 11px; padding: 3px 10px;
-    border-radius: 12px; background: var(--panel-inner);
-    color: var(--text-muted); margin-bottom: 12px; font-weight: 600;
-  }
+  .pattern .tag { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 12px; background: var(--panel-inner); color: var(--text-muted); margin-bottom: 12px; font-weight: 600; }
   .pattern.best .tag { background: #fdf2f8; color: var(--accent-pink-dark); }
-  
   .pattern .style { font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 12px; }
   
-  .skill-block {
-    background: var(--panel-inner); border-radius: 8px;
-    padding: 12px; margin-bottom: 10px;
-  }
+  .skill-block { background: var(--panel-inner); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
   .skill-title { font-size: 13px; font-weight: 600; color: var(--accent-blue-dark); margin-bottom: 8px; display: flex; justify-content: space-between;}
   .skill-line { font-size: 13px; display: flex; justify-content: space-between; padding: 3px 0; }
   .skill-line .lbl { color: var(--text-muted); }
   .skill-line .val { color: var(--text-main); font-family: Consolas, monospace; font-weight: 600;}
   
-  .pattern .total {
-    font-size: 14px; display: flex; justify-content: space-between;
-    padding-top: 12px; border-top: 1px solid var(--border); margin-top: 8px;
-  }
+  .pattern .total { font-size: 14px; display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--border); margin-top: 8px; }
   .pattern .total .lbl { color: var(--text-main); font-weight: 600;}
   .pattern .total .val { color: var(--accent-pink-dark); font-weight: 700; font-size: 16px;}
-  
   .pattern .err { font-size: 12px; margin-top: 10px; text-align: right; font-weight: 500;}
   .err.good { color: var(--success-text); }
   .err.ok { color: #d97706; }
@@ -201,20 +141,15 @@
   .warn { color: var(--danger-text); font-size: 13px; font-weight: 600;}
   .ok { color: var(--success-text); font-size: 13px; font-weight: 600;}
   .death-tag { color: var(--danger-text); font-size: 12px; margin-left: 8px; font-weight: 600; background: #fef2f2; padding: 2px 6px; border-radius: 4px;}
-  .penalty-text { font-size: 11px; color: var(--text-muted); display: block; margin-top: 2px;}
+  .penalty-text { font-size: 11px; color: var(--text-muted); display: block; margin-top: 4px; background: rgba(0,0,0,0.03); padding: 2px 6px; border-radius: 4px;}
 
   /* 手机适配 */
   @media (max-width: 600px) {
     .player-header { display: none; }
     .player-row { 
       grid-template-columns: 1.5fr 1fr 1fr 40px; 
-      grid-template-rows: auto auto; 
-      gap: 8px;
-      background: var(--panel);
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      margin-bottom: 12px;
+      grid-template-rows: auto auto; gap: 8px;
+      background: var(--panel); padding: 12px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 12px;
     }
     .player-row input.p-dmg { grid-column: 1 / 3; }
     .player-row input.p-hit { grid-column: 3 / 5; }
@@ -227,7 +162,7 @@
 <body>
 <div class="wrap">
   <h1>🎲 COC 怪物期望计算器</h1>
-  <p class="subtitle">支持多动惩罚骰 · 白蓝粉低饱和 UI</p>
+  <p class="subtitle">支持多动惩罚、寡不敌众、怪物固定动数</p>
 
   <!-- 玩家列表 -->
   <h2>① 调查员列表</h2>
@@ -242,8 +177,13 @@
   <button class="small ghost" onclick="addPlayer()">+ 添加玩家</button>
 
   <!-- 怪物配置 -->
-  <h2>② 怪物技能配置</h2>
+  <h2>② 怪物配置与规则</h2>
   <div class="grid">
+    <div class="field">
+      <label>怪物每轮总动数</label>
+      <input id="monsterActions" type="number" value="2" min="1" max="5" step="1">
+      <div class="hint">怪物的行动上限，方案不会超发</div>
+    </div>
     <div class="field">
       <label>技能数量</label>
       <div class="radio-group">
@@ -261,20 +201,40 @@
     </div>
   </div>
 
+  <!-- 寡不敌众规则 -->
+  <div class="field" style="margin-top: 16px;">
+    <div class="switch-group">
+      <input type="checkbox" id="outnumberedCheck" onchange="toggleOutnumbered()">
+      <label for="outnumberedCheck">开启“寡不敌众”规则</label>
+    </div>
+  </div>
+  
+  <div class="grid" id="outnumberedFields" style="display:none; margin-top: 12px; background: var(--panel); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
+    <div class="field">
+      <label>玩家攻击奖励骰数 (围攻怪物)</label>
+      <input id="playerBonusDice" type="number" value="1" min="0" max="2">
+      <div class="hint">抵消玩家多动惩罚</div>
+    </div>
+    <div class="field">
+      <label>怪物攻击奖励骰数 (被围攻)</label>
+      <input id="monsterBonusDice" type="number" value="1" min="0" max="2">
+      <div class="hint">增加怪物命中率</div>
+    </div>
+  </div>
+
   <!-- KP 目标 -->
   <h2>③ KP 的期望</h2>
   <div class="grid">
     <div class="field">
       <label>希望怪物造成的总伤害</label>
       <input id="totalDamage" type="number" value="40" min="1">
-      <div class="hint">试试输入 150 看看神话生物？</div>
     </div>
     <div class="field">
       <label>希望战斗持续轮数 T</label>
       <input id="rounds" type="number" value="4" min="1" step="1">
     </div>
     <div class="field">
-      <label>难度系数</label>
+      <label>怪物 HP 难度系数</label>
       <input id="difficulty" type="number" value="1" min="0.1" step="0.1">
     </div>
   </div>
@@ -289,7 +249,7 @@
     <div class="cards" id="summaryCards"></div>
 
     <h2>⑤ 可行的技能方案</h2>
-    <p class="hint" style="margin-top:-8px; margin-bottom: 16px;">按与目标每轮实际伤害的偏差排序。</p>
+    <p class="hint" style="margin-top:-8px; margin-bottom: 16px;">已严格限制总动数。按伤害偏差排序。</p>
     <div class="patterns-grid" id="patterns"></div>
   </div>
 </div>
@@ -329,49 +289,70 @@ function parseDice(expr){
   return {avg,min,max,expr};
 }
 
-/* ============ 核心：COC 7版 惩罚骰数学概率 ============ */
-// penaltyCount: 0 (无), 1 (1罚), 2 (2罚)
-function getEffectiveHitRate(basePct, penaltyCount) {
+/* ============ 核心：COC 7版 概率计算（支持奖励/惩罚混合） ============ */
+// netDice: 正数为惩罚骰（取高），负数为奖励骰（取低），0为无
+function getEffectiveHitRate(basePct, netDice) {
   if (basePct <= 0) return 0;
   if (basePct >= 100) return 1;
   
   const t = Math.floor(basePct / 10);
   const u = basePct % 10;
   
-  if (penaltyCount === 0) return basePct / 100;
+  if (netDice === 0) return basePct / 100;
   
+  // 简化的多重骰子概率模型
+  // 如果是惩罚骰（netDice > 0），即掷 (netDice + 1) 个十位骰取最大
+  // 如果是奖励骰（netDice < 0），即掷 (|netDice| + 1) 个十位骰取最小
+  const numDice = Math.abs(netDice) + 1;
   let prob = 0;
-  if (penaltyCount === 1) {
-    // 1个惩罚骰：掷2个十位骰取高
-    prob = (t * t) / 100 + ((2 * t + 1) * (u + 1)) / 1000;
-  } else if (penaltyCount >= 2) {
-    // 2个惩罚骰：掷3个十位骰取高 (3罚及以上很少见，按2罚算)
-    prob = (t * t * t) / 1000 + ((3 * t * t + 3 * t + 1) * (u + 1)) / 10000;
+  
+  if (netDice > 0) {
+    // 惩罚：取高
+    // P(十位 = k) = ((k+1)^n - k^n) / 100^n
+    // 我们只算个位成功概率即可
+    for (let k = 0; k <= t; k++) {
+      const ways = Math.pow(k + 1, numDice) - Math.pow(k, numDice);
+      if (k === t) {
+        // 如果十位刚好等于 t，还要看个位是否 <= u
+        prob += (ways / Math.pow(10, numDice)) * ((u + 1) / 10);
+      } else {
+        // 如果十位小于 t，个位必定成功
+        prob += (ways / Math.pow(10, numDice));
+      }
+    }
+  } else {
+    // 奖励：取低
+    // P(十位 = k) = ((10-k)^n - (9-k)^n) / 100^n
+    // 注意：取低的话，当且仅当最小十位 < t 必定成功；== t 需要个位； > t 失败
+    for (let k = 0; k <= t; k++) {
+      const ways = Math.pow(10 - k, numDice) - Math.pow(9 - k, numDice);
+      if (k === t) {
+        prob += (ways / Math.pow(10, numDice)) * ((u + 1) / 10);
+      } else {
+        prob += (ways / Math.pow(10, numDice));
+      }
+    }
   }
   return prob;
 }
 
 /* ============ 庞大且致命的候选伤害池 ============ */
 const DICE_POOL = [
-  // 低伤害
   {expr:'1',avg:1,min:1,max:1}, {expr:'2',avg:2,min:2,max:2},
   {expr:'1D3',avg:2,min:1,max:3}, {expr:'1D4',avg:2.5,min:1,max:4},
   {expr:'1D4+1',avg:3.5,min:2,max:5}, {expr:'1D6',avg:3.5,min:1,max:6},
   {expr:'1D6+1',avg:4.5,min:2,max:7}, {expr:'1D8',avg:4.5,min:1,max:8},
   {expr:'1D10',avg:5.5,min:1,max:10}, {expr:'2D4+1',avg:6,min:3,max:9},
-  // 中伤害
   {expr:'2D6',avg:7,min:2,max:12}, {expr:'1D10+2',avg:7.5,min:3,max:12},
   {expr:'3D4',avg:7.5,min:3,max:12}, {expr:'2D6+1',avg:8,min:3,max:13},
   {expr:'1D8+1D6',avg:8,min:2,max:14}, {expr:'2D6+2',avg:9,min:4,max:14},
   {expr:'2D8',avg:9,min:2,max:16}, {expr:'2D6+3',avg:10,min:5,max:15},
   {expr:'3D6',avg:10.5,min:3,max:18}, {expr:'2D8+1',avg:10,min:3,max:17},
-  // 高伤害
   {expr:'3D6+2',avg:12.5,min:5,max:20}, {expr:'4D6',avg:14,min:4,max:24},
   {expr:'3D8',avg:13.5,min:3,max:24}, {expr:'2D10+1D6',avg:14.5,min:3,max:26},
   {expr:'5D6',avg:17.5,min:5,max:30}, {expr:'4D8',avg:18,min:4,max:32},
   {expr:'3D10+2D6',avg:23.5,min:5,max:42}, {expr:'6D6',avg:21,min:6,max:36},
   {expr:'5D8',avg:22.5,min:5,max:40}, {expr:'4D10',avg:22,min:4,max:40},
-  // 神话生物
   {expr:'8D6',avg:28,min:8,max:48}, {expr:'6D10',avg:33,min:6,max:60},
   {expr:'8D8',avg:36,min:8,max:64}, {expr:'10D6',avg:35,min:10,max:60},
   {expr:'8D10',avg:44,min:8,max:80}, {expr:'12D6',avg:42,min:12,max:72},
@@ -379,7 +360,7 @@ const DICE_POOL = [
   {expr:'15D10',avg:82.5,min:15,max:150}, {expr:'20D10',avg:110,min:20,max:200}
 ];
 
-/* ============ 玩家列表 ============ */
+/* ============ 界面逻辑 ============ */
 let playerIdCounter = 0;
 
 function addPlayer(dmg='1D6', hit=60, hp=12, att=1){
@@ -388,8 +369,8 @@ function addPlayer(dmg='1D6', hit=60, hp=12, att=1){
   row.className = 'player-row';
   row.dataset.id = id;
   row.innerHTML = `
-    <input class="p-dmg" type="text" value="${dmg}" placeholder="伤害（如1D6）">
-    <input class="p-hit" type="number" value="${hit}" min="0" max="100" placeholder="基础命中%">
+    <input class="p-dmg" type="text" value="${dmg}" placeholder="伤害">
+    <input class="p-hit" type="number" value="${hit}" min="0" max="100" placeholder="命中%">
     <input class="p-hp" type="number" value="${hp}" min="1" placeholder="HP">
     <input class="p-att" type="number" value="${att}" min="1" max="3" placeholder="动数">
     <button class="del" onclick="removePlayer(${id})">✕</button>
@@ -407,34 +388,49 @@ function toggleSkill2(){
   document.getElementById('skill2Field').style.display = cnt === 2 ? 'flex' : 'none';
 }
 
-/* ============ 生成技能方案 ============ */
-function generateSkillPatterns(targetActualDPR, playerCount, skillCount, hit1, hit2){
+function toggleOutnumbered(){
+  const isChecked = document.getElementById('outnumberedCheck').checked;
+  document.getElementById('outnumberedFields').style.display = isChecked ? 'grid' : 'none';
+}
+
+/* ============ 生成技能方案（严格限制动数） ============ */
+function generateSkillPatterns(targetActualDPR, skillCount, effHit1, effHit2, maxActions){
+  const results = [];
+  
+  // 枚举可能的技能动作分配 (n1 + n2 <= maxActions)
   const combos = [];
-  if(skillCount === 1){
-    for(let n=1;n<=3;n++) combos.push({n1:n,n2:0});
-  } else {
-    const cands = [[1,1],[1,2],[2,1],[2,2],[1,3],[3,1]];
-    for(const [n1,n2] of cands) combos.push({n1,n2});
+  for(let n1=0; n1<=maxActions; n1++){
+    for(let n2=0; n2<=maxActions - n1; n2++){
+      if(n1 + n2 === 0) continue; // 至少动一次
+      if(skillCount === 1 && n2 > 0) continue; // 只有1个技能时 n2 必须为 0
+      combos.push({n1, n2});
+    }
   }
 
-  const results = [];
   for(const combo of combos){
     let best = null;
     if(skillCount === 1){
       for(const e of DICE_POOL){
-        const total = combo.n1 * hit1 * e.avg;
+        const total = combo.n1 * effHit1 * e.avg;
         const err = Math.abs(total - targetActualDPR);
-        if(!best || err < best.err) best = {e1:e,e2:null,total,err,penalty:0};
+        if(!best || err < best.err) best = {e1:e, e2:null, total, err, penalty:0};
       }
     } else {
       for(const e1 of DICE_POOL){
-        for(const e2 of DICE_POOL){
-          const total = combo.n1*hit1*e1.avg + combo.n2*hit2*e2.avg;
+        // 如果该方案里技能2用不到，直接跳过深层循环优化性能
+        if(combo.n2 === 0){
+          const total = combo.n1 * effHit1 * e1.avg;
           const err = Math.abs(total - targetActualDPR);
-          const boring = e1.expr === e2.expr;
-          const penalty = boring ? 1000 : 0;
-          if(!best || (err+penalty) < (best.err+best.penalty)){
-            best = {e1,e2,total,err,penalty};
+          if(!best || err < best.err) best = {e1, e2:null, total, err, penalty:0};
+        } else {
+          for(const e2 of DICE_POOL){
+            const total = combo.n1 * effHit1 * e1.avg + combo.n2 * effHit2 * e2.avg;
+            const err = Math.abs(total - targetActualDPR);
+            const boring = e1.expr === e2.expr && combo.n1 > 0 && combo.n2 > 0;
+            const penalty = boring ? 1000 : 0;
+            if(!best || (err+penalty) < (best.err+best.penalty)){
+              best = {e1, e2, total, err, penalty};
+            }
           }
         }
       }
@@ -445,23 +441,24 @@ function generateSkillPatterns(targetActualDPR, playerCount, skillCount, hit1, h
   const seen = new Set();
   const deduped = [];
   for(const r of results.sort((a,b)=>a.err-b.err)){
-    const key = `${r.n1}-${r.n2}`;
+    const key = `${r.n1}-${r.n2}-${r.e1.expr}-${r.e2?r.e2.expr:''}`;
     if(!seen.has(key)){ seen.add(key); deduped.push(r); }
   }
   return deduped.slice(0,6);
 }
 
 function describeCombo(n1, n2){
-  if(n2 === 0) return `单技能 · 每轮 ${n1} 次攻击`;
-  if(n1 === n2) return `双技能均衡 · 各 ${n1} 次攻击`;
-  if(n1 > n2) return `技能1 主攻（${n1}次） / 技能2 辅助（${n2}次）`;
-  return `技能2 主攻（${n2}次） / 技能1 辅助（${n1}次）`;
+  if(n2 === 0) return `技能1 攻击 ${n1} 次`;
+  if(n1 === 0) return `技能2 攻击 ${n2} 次`;
+  return `技能1 攻击 ${n1} 次 + 技能2 攻击 ${n2} 次`;
 }
 
 /* ============ 主计算 ============ */
 function calc(){
+  // 1. 抓取玩家数据
   const rows = document.querySelectorAll('.player-row');
   const players = [];
+  const P = rows.length;
   
   for(const row of rows){
     const dmgExpr = row.querySelector('.p-dmg').value.trim();
@@ -475,83 +472,83 @@ function calc(){
     
     if(isNaN(hitPct) || hitPct < 0 || hitPct > 100){ alert('命中率需在 0~100 之间'); return; }
     if(isNaN(hp) || hp <= 0){ alert('HP 必须大于 0'); return; }
-    if(att < 1 || att > 3){ alert('动数需在 1~3 之间'); return; }
 
-    // 计算每一动的命中率（多动惩罚规则）
-    let totalHitPct = 0;
-    const hitDetails = [];
-    for(let i=0; i<att; i++) {
-      // 第 0 动(第一击)无惩罚，第 1 动(第二击)1罚，第 2 动(第三击)2罚
-      const pDice = i; 
-      const effectiveRate = getEffectiveHitRate(hitPct, pDice) * 100;
-      totalHitPct += effectiveRate;
-      hitDetails.push(f1(effectiveRate) + '%');
-    }
-
-    players.push({
-      expr: dice.expr, dmgAvg: dice.avg,
-      baseHitPct: hitPct, totalHitPct: totalHitPct,
-      hitDetails: hitDetails.join(' + '),
-      att, hp
-    });
+    players.push({ expr: dice.expr, dmgAvg: dice.avg, baseHitPct: hitPct, hp, att });
   }
-  
   if(players.length === 0){ alert('请至少添加一个玩家'); return; }
 
+  // 2. 抓取怪物配置与规则
+  const maxActions = Math.max(1, parseInt(document.getElementById('monsterActions').value) || 1);
   const skillCount = parseInt(document.querySelector('input[name="skillCount"]:checked').value);
-  const hit1 = Math.max(0, Math.min(1, parseFloat(document.getElementById('skillHit1').value)/100));
-  const hit2 = skillCount === 2
-    ? Math.max(0, Math.min(1, parseFloat(document.getElementById('skillHit2').value)/100))
-    : 0;
+  const baseHit1 = Math.max(0, Math.min(1, parseFloat(document.getElementById('skillHit1').value)/100));
+  const baseHit2 = skillCount === 2 ? Math.max(0, Math.min(1, parseFloat(document.getElementById('skillHit2').value)/100)) : 0;
+  
+  const isOutnumbered = document.getElementById('outnumberedCheck').checked;
+  const playerBonus = isOutnumbered ? (parseInt(document.getElementById('playerBonusDice').value) || 0) : 0;
+  const monsterBonus = isOutnumbered ? (parseInt(document.getElementById('monsterBonusDice').value) || 0) : 0;
 
+  // 怪物真实有效命中率（考虑怪物打多个玩家的寡不敌众奖励）
+  const effHit1 = getEffectiveHitRate(baseHit1 * 100, -monsterBonus);
+  const effHit2 = getEffectiveHitRate(baseHit2 * 100, -monsterBonus);
+
+  // 3. KP 期望
   const D = parseFloat(document.getElementById('totalDamage').value);
   const T = Math.max(1, parseFloat(document.getElementById('rounds').value));
   const diff = Math.max(0.1, parseFloat(document.getElementById('difficulty').value) || 1);
   if(isNaN(D) || D <= 0){ alert('总伤害需大于 0'); return; }
 
-  // 玩家总输出：伤害 * (总命中率 / 100)
-  const playerDPS = players.reduce((s,p) => s + p.dmgAvg * (p.totalHitPct / 100), 0);
-  
-  // 怪物 HP 期望
-  const monsterHP = playerDPS * T * diff;
-  const hpLow = monsterHP * 0.8, hpHigh = monsterHP * 1.2;
-  
-  // 怪物伤害
-  const targetActualDPR = D / T;
-  const damagePerPlayer = D / players.length;
-  const P = players.length;
-
-  // 生存检查
-  const deathRisks = players.map((p, i) => {
-    const surviveRounds = p.hp / (targetActualDPR / P);
-    return { index: i, hp: p.hp, surviveRounds, willDie: surviveRounds < T - 0.01 };
-  });
-  const totalPlayerHP = players.reduce((s,p)=>s+p.hp,0);
-  const isTeamWipe = D >= totalPlayerHP;
-
-  // 生成技能方案
-  const patterns = generateSkillPatterns(targetActualDPR, P, skillCount, hit1, hit2);
-
-  // ===== 渲染 =====
+  // 4. 计算玩家真实输出
+  let playerDPS = 0;
   const playerRowsHTML = players.map((p,i) => {
-    const dr = deathRisks[i];
-    const death = dr.willDie
-      ? `<span class="death-tag">💀 约 ${f1(dr.surviveRounds)} 轮后倒下</span>`
+    let totalHitPct = 0;
+    const hitDetails = [];
+    
+    for(let j=0; j<p.att; j++) {
+      // 第j动，多动惩罚为 j；寡不敌众奖励为 playerBonus
+      // 净惩罚骰数 = 多动惩罚 - 奖励
+      const netDice = j - playerBonus; 
+      const rate = getEffectiveHitRate(p.baseHitPct, netDice) * 100;
+      totalHitPct += rate;
+      hitDetails.push(f1(rate) + '%');
+    }
+    
+    const dps = p.dmgAvg * (totalHitPct / 100);
+    playerDPS += dps;
+
+    const surviveRounds = p.hp / (D / T / P);
+    const willDie = surviveRounds < T - 0.01;
+    const death = willDie
+      ? `<span class="death-tag">💀 约 ${f1(surviveRounds)} 轮后倒下</span>`
       : `<span style="color:var(--success-text);font-size:12px;margin-left:8px;font-weight:600">✓ 可存活</span>`;
       
     const attText = p.att > 1 ? `[${p.att}动]` : '';
+    const bonusText = playerBonus > 0 ? ` + ${playerBonus}奖` : '';
+    const netText = hitDetails.join(' + ');
+    
     return `<div class="row">
-      <span class="lbl">玩家${i+1} · ${p.expr} @ ${p.baseHitPct}% ${attText}</span>
+      <span class="lbl">玩家${i+1} · ${p.expr} @ ${p.baseHitPct}% ${attText}${bonusText}</span>
       <span class="val">
-        总DPS: ${f1(p.dmgAvg * (p.totalHitPct / 100))} · HP ${p.hp} ${death}
-        ${p.att > 1 ? `<span class="penalty-text">多动实际命中: ${p.hitDetails}</span>` : ''}
+        DPS: ${f1(dps)} · HP ${p.hp} ${death}
+        ${p.att > 1 || playerBonus > 0 ? `<span class="penalty-text">各动实际命中: ${netText}</span>` : ''}
       </span>
     </div>`;
   }).join('');
 
+  // 5. 怪物数值
+  const monsterHP = playerDPS * T * diff;
+  const hpLow = monsterHP * 0.8, hpHigh = monsterHP * 1.2;
+  const targetActualDPR = D / T;
+  const damagePerPlayer = D / P;
+  const totalPlayerHP = players.reduce((s,p)=>s+p.hp,0);
+  const isTeamWipe = D >= totalPlayerHP;
+
+  // 6. 生成方案
+  const patterns = generateSkillPatterns(targetActualDPR, skillCount, effHit1, effHit2, maxActions);
+
+  // ===== 渲染 =====
   const summaryHTML = `
     <div class="card wide">
-      <div class="k">调查员每轮总 DPS（已计入多动惩罚）</div>
+      <div class="k">调查员每轮总 DPS（已计入所有多动和围攻规则）</div>
       <div class="v">${f1(playerDPS)}</div>
       <div class="sub" style="margin-top:12px">${playerRowsHTML}</div>
     </div>
@@ -568,13 +565,13 @@ function calc(){
     <div class="card">
       <div class="k">每个玩家预期承受</div>
       <div class="v">${f1(damagePerPlayer)}</div>
-      <div class="sub">共 ${P} 名玩家，概率均等分摊</div>
+      <div class="sub">共 ${P} 名玩家，均等分摊</div>
     </div>
     <div class="card">
       <div class="k">玩家总 HP 承受力</div>
       <div class="v ${isTeamWipe?'danger':''}">${f0(totalPlayerHP)}</div>
       <div class="sub">${isTeamWipe
-        ? '<span class="warn">⚠️ 致死量：总伤害 ≥ 总 HP</span>'
+        ? '<span class="warn">⚠️ 致死量：伤害总和 ≥ 总 HP</span>'
         : `<span class="ok">✓ 预计存活，剩余 ${f0(totalPlayerHP - D)} HP</span>`}</div>
     </div>
   `;
@@ -587,27 +584,22 @@ function calc(){
     const style = describeCombo(p.n1, p.n2);
 
     let skillBlocks = '';
-    if(skillCount === 1){
-      skillBlocks = `
+    if(p.n1 > 0) {
+      skillBlocks += `
         <div class="skill-block">
-          <div class="skill-title"><span>技能 1</span><span>命中 ${(hit1*100).toFixed(0)}%</span></div>
+          <div class="skill-title"><span>技能 1</span><span>基础命中 ${(baseHit1*100).toFixed(0)}% ➔ 修正后 ${f1(effHit1*100)}%</span></div>
           <div class="skill-line"><span class="lbl">伤害骰</span><span class="val">${p.e1.expr}（期望 ${f1(p.e1.avg)}）</span></div>
-          <div class="skill-line"><span class="lbl">每轮次数</span><span class="val">${p.n1} 次</span></div>
-          <div class="skill-line"><span class="lbl">实际每轮贡献</span><span class="val">${f1(p.n1*hit1*p.e1.avg)}</span></div>
+          <div class="skill-line"><span class="lbl">分配动数</span><span class="val">${p.n1} 动</span></div>
+          <div class="skill-line"><span class="lbl">实际贡献</span><span class="val">${f1(p.n1*effHit1*p.e1.avg)}</span></div>
         </div>`;
-    } else {
-      skillBlocks = `
+    }
+    if(p.n2 > 0) {
+      skillBlocks += `
         <div class="skill-block">
-          <div class="skill-title"><span>技能 1</span><span>命中 ${(hit1*100).toFixed(0)}%</span></div>
-          <div class="skill-line"><span class="lbl">伤害骰</span><span class="val">${p.e1.expr}（期望 ${f1(p.e1.avg)}）</span></div>
-          <div class="skill-line"><span class="lbl">每轮次数</span><span class="val">${p.n1} 次</span></div>
-          <div class="skill-line"><span class="lbl">实际每轮贡献</span><span class="val">${f1(p.n1*hit1*p.e1.avg)}</span></div>
-        </div>
-        <div class="skill-block">
-          <div class="skill-title"><span>技能 2</span><span>命中 ${(hit2*100).toFixed(0)}%</span></div>
+          <div class="skill-title"><span>技能 2</span><span>基础命中 ${(baseHit2*100).toFixed(0)}% ➔ 修正后 ${f1(effHit2*100)}%</span></div>
           <div class="skill-line"><span class="lbl">伤害骰</span><span class="val">${p.e2.expr}（期望 ${f1(p.e2.avg)}）</span></div>
-          <div class="skill-line"><span class="lbl">每轮次数</span><span class="val">${p.n2} 次</span></div>
-          <div class="skill-line"><span class="lbl">实际每轮贡献</span><span class="val">${f1(p.n2*hit2*p.e2.avg)}</span></div>
+          <div class="skill-line"><span class="lbl">分配动数</span><span class="val">${p.n2} 动</span></div>
+          <div class="skill-line"><span class="lbl">实际贡献</span><span class="val">${f1(p.n2*effHit2*p.e2.avg)}</span></div>
         </div>`;
     }
 
@@ -632,13 +624,20 @@ function calc(){
 function resetAll(){
   document.getElementById('playerList').innerHTML = '';
   addPlayer('1D6', 60, 12, 1);
-  addPlayer('1D8', 50, 11, 2); // 演示2动
-  addPlayer('2D6', 55, 13, 3); // 演示3动
+  addPlayer('1D8', 50, 11, 2);
+  addPlayer('2D6', 55, 13, 3);
+  document.getElementById('monsterActions').value = 2;
   document.getElementById('skillHit1').value = 60;
   document.getElementById('skillHit2').value = 40;
   document.getElementById('totalDamage').value = 40;
   document.getElementById('rounds').value = 4;
   document.getElementById('difficulty').value = 1;
+  
+  document.getElementById('outnumberedCheck').checked = false;
+  document.getElementById('playerBonusDice').value = 1;
+  document.getElementById('monsterBonusDice').value = 1;
+  toggleOutnumbered();
+
   document.querySelector('input[name="skillCount"][value="2"]').checked = true;
   toggleSkill2();
   document.getElementById('output').style.display = 'none';
@@ -650,6 +649,7 @@ window.onload = function(){
   addPlayer('1D8', 50, 11, 2);
   addPlayer('2D6', 55, 13, 3);
   toggleSkill2();
+  toggleOutnumbered();
   calc();
 };
 </script>
