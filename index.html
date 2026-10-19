@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>COC 战斗期望计算器 v9.2</title>
+<title>COC 战斗期望计算器 v9.3</title>
 <style>
   :root {
     --bg: #f7f9fc;
@@ -45,7 +45,7 @@
   /* 基础布局 */
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
   .field { display: flex; flex-direction: column; }
-  label { font-size: 13px; color: var(--text-main); margin-bottom: 6px; font-weight: 500; }
+  .field label { font-size: 13px; color: var(--text-main); margin-bottom: 6px; font-weight: 500; }
   
   /* 统一输入框 */
   input[type="text"], input[type="number"] {
@@ -69,7 +69,7 @@
   button.ghost:hover { background: var(--panel-inner); }
   button.small { height: 36px; padding: 0 16px; font-size: 13px; margin-top: 0; }
 
-  /* 表格布局 */
+  /* 表格布局容器 */
   .data-table {
     display: flex; flex-direction: column;
     border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow);
@@ -86,21 +86,25 @@
     align-items: center; gap: 10px;
   }
   .table-row:last-child { border-bottom: none; }
-  .table-row input { height: 36px; margin: 0; }
+  .table-row input { height: 38px; margin: 0; }
   
   .table-row button.del {
-    padding: 0; height: 36px; width: 36px; font-size: 14px;
+    padding: 0; height: 38px; width: 38px; font-size: 14px;
     background: transparent; color: var(--text-muted); border: 1px solid var(--border);
     border-radius: 6px; cursor: pointer; margin-top: 0; transition: all 0.2s;
     display: flex; align-items: center; justify-content: center;
   }
   .table-row button.del:hover { background: var(--danger); color: white; border-color: transparent; }
 
+  /* PC端隐藏输入框自带的 label */
+  .input-wrap { display: flex; flex-direction: column; width: 100%; }
+  .input-wrap label { display: none; }
+
   /* 玩家表格列定义 */
   .player-table .table-header, .player-table .table-row {
     grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr 40px;
   }
-  .dex-group { display: flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 6px; padding: 0 8px; height: 36px; background: var(--panel);}
+  .dex-group { display: flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 6px; padding: 0 8px; height: 38px; background: var(--panel);}
   .dex-group input { border: none; box-shadow: none; padding: 0; height: 100%; background: transparent; }
   .dex-group input:focus { box-shadow: none; }
   .dex-group label { margin: 0; font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap;}
@@ -169,38 +173,42 @@
   .death-tag { color: var(--danger-text); font-size: 12px; margin-left: 8px; font-weight: 600; background: #fef2f2; padding: 2px 6px; border-radius: 4px;}
   .penalty-text { font-size: 11px; color: var(--text-muted); display: block; margin-top: 4px; background: rgba(0,0,0,0.03); padding: 2px 6px; border-radius: 4px;}
 
-  /* 🆕 手机端多行网格（带标签） */
-  @media (max-width: 800px) {
-    .table-header { display: none; } /* 隐藏原表头 */
-    .table-row { 
-      display: flex; flex-wrap: wrap; gap: 12px; padding: 16px 12px; position: relative; 
-    }
-    /* 让每个输入框单独成为一行或者占半边，并显示标签 */
-    .player-table .table-row > input, 
-    .player-table .table-row > div:not(.dex-group),
-    .monster-table .table-row > input,
-    .monster-table .table-row > div:not(.m-name) { 
-      flex: 1 1 40%; display: flex; flex-direction: column; gap: 4px; 
+  /* 🆕 手机端多行网格布局 */
+  @media (max-width: 850px) {
+    .table-header { display: none; }
+    
+    /* 整体容器变成卡片样式 */
+    .player-table .table-row, 
+    .monster-table .table-row {
+      display: flex; flex-wrap: wrap; gap: 12px; 
+      padding: 16px; position: relative; 
+      background: var(--panel); margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border);
     }
     
-    /* 自动生成小标签 */
-    .player-table .table-row > input::before,
-    .player-table .table-row > div:not(.dex-group)::before,
-    .monster-table .table-row > input::before,
-    .monster-table .table-row > div:not(.m-name)::before {
-      content: attr(data-label); font-size: 11px; color: var(--text-muted); font-weight: 500;
+    /* 每一个输入项包裹层 */
+    .input-wrap { flex: 1 1 45%; display: flex; flex-direction: column; gap: 4px; }
+    
+    /* 🆕 核心：强制显示所有 label，并且格式美观 */
+    .input-wrap label { 
+      display: block !important; 
+      font-size: 12px; 
+      color: var(--text-main); 
+      font-weight: 600; 
+      margin-bottom: 2px;
     }
     
     /* 怪物名称独占一行 */
     .monster-table .m-name { 
-      flex-basis: 100%; margin-bottom: 4px; padding-bottom: 8px; border-bottom: 1px dashed var(--border); 
+      flex-basis: 100%; margin-bottom: 4px; padding-bottom: 8px; 
+      border-bottom: 1px dashed var(--border); font-size: 15px;
     }
-    /* DEX 组独立占半行 */
-    .dex-group { flex: 1 1 40%; display: flex; flex-direction: column; align-items: flex-start; padding: 6px 8px; height: auto;}
-    .dex-group::before { content: attr(data-label); font-size: 11px; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; }
-    .dex-group input { height: 24px; }
     
-    .table-row button.del { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; flex: none; border: none;}
+    /* DEX 组特殊处理，使其占一半宽度，内部依然横排 */
+    .input-wrap.dex-wrap { flex: 1 1 45%; }
+    .dex-group { height: 38px; width: 100%; }
+    
+    /* 删除按钮绝对定位在右上角 */
+    .table-row button.del { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; flex: none; border: none; background: var(--panel-inner);}
   }
 </style>
 </head>
@@ -422,13 +430,28 @@ function addPlayer(dmg='1D6', hit=60, hp=12, att=1, dex=50, ready=false){
   row.className = 'player-row table-row';
   row.dataset.id = id;
   row.innerHTML = `
-    <input class="p-dmg" type="text" value="${dmg}" placeholder="如1D6" data-label="伤害表达式">
-    <input class="p-hit" type="number" value="${hit}" min="0" max="100" placeholder="60" data-label="命中 %">
-    <input class="p-hp" type="number" value="${hp}" min="1" placeholder="12" data-label="HP">
-    <input class="p-att" type="number" value="${att}" min="1" max="3" placeholder="1" data-label="动数">
-    <div class="dex-group" data-label="DEX (准备+50)">
-      <input class="p-dex" type="number" value="${dex}" min="1" max="99" placeholder="DEX">
-      <label><input class="p-ready" type="checkbox" ${ready?'checked':''}>准备</label>
+    <div class="input-wrap">
+      <label>伤害表达式</label>
+      <input class="p-dmg" type="text" value="${dmg}" placeholder="如1D6">
+    </div>
+    <div class="input-wrap">
+      <label>命中 %</label>
+      <input class="p-hit" type="number" value="${hit}" min="0" max="100" placeholder="60">
+    </div>
+    <div class="input-wrap">
+      <label>HP</label>
+      <input class="p-hp" type="number" value="${hp}" min="1" placeholder="12">
+    </div>
+    <div class="input-wrap">
+      <label>动数</label>
+      <input class="p-att" type="number" value="${att}" min="1" max="3" placeholder="1">
+    </div>
+    <div class="input-wrap dex-wrap">
+      <label>DEX (准备+50)</label>
+      <div class="dex-group">
+        <input class="p-dex" type="number" value="${dex}" min="1" max="99" placeholder="DEX">
+        <label><input class="p-ready" type="checkbox" ${ready?'checked':''}>准备</label>
+      </div>
     </div>
     <button class="del" onclick="removePlayer(${id})">✕</button>
   `;
@@ -459,13 +482,31 @@ function addMonster(dex=50, att=2, armor=0, hit1=60, hit2=40, ratio=50){
   row.className = 'monster-row table-row';
   row.dataset.id = id;
   row.innerHTML = `
-    <div class="m-name" data-label="名称">怪物 ${id}</div>
-    <input class="m-dex" type="number" value="${dex}" min="1" max="99" placeholder="50" data-label="DEX">
-    <input class="m-att" type="number" value="${att}" min="1" max="10" placeholder="2" data-label="动数">
-    <input class="m-armor" type="number" value="${armor}" min="0" max="20" placeholder="0" data-label="护甲">
-    <input class="m-hit1" type="number" value="${hit1}" min="0" max="100" placeholder="60" data-label="命中 1 %">
-    <input class="m-hit2" type="number" value="${hit2}" min="0" max="100" placeholder="40" data-label="命中 2 %">
-    <input class="m-ratio" type="number" value="${ratio}" min="0" max="100" placeholder="50" data-label="伤害占比 %">
+    <div class="m-name">怪物 ${id}</div>
+    <div class="input-wrap">
+      <label>DEX</label>
+      <input class="m-dex" type="number" value="${dex}" min="1" max="99" placeholder="50">
+    </div>
+    <div class="input-wrap">
+      <label>动数</label>
+      <input class="m-att" type="number" value="${att}" min="1" max="10" placeholder="2">
+    </div>
+    <div class="input-wrap">
+      <label>护甲</label>
+      <input class="m-armor" type="number" value="${armor}" min="0" max="20" placeholder="0">
+    </div>
+    <div class="input-wrap">
+      <label>命中 1 %</label>
+      <input class="m-hit1" type="number" value="${hit1}" min="0" max="100" placeholder="60">
+    </div>
+    <div class="input-wrap">
+      <label>命中 2 %</label>
+      <input class="m-hit2" type="number" value="${hit2}" min="0" max="100" placeholder="40">
+    </div>
+    <div class="input-wrap">
+      <label>伤害占比 %</label>
+      <input class="m-ratio" type="number" value="${ratio}" min="0" max="100" placeholder="50">
+    </div>
     <button class="del" onclick="removeMonster(${id})">✕</button>
   `;
   document.getElementById('monsterList').appendChild(row);
