@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>COC 怪物期望计算器 v6</title>
+<title>COC 战斗期望与先攻计算器 v7</title>
 <style>
   :root {
     --bg: #f7f9fc;
@@ -25,12 +25,11 @@
   * { box-sizing: border-box; }
   body {
     margin: 0; padding: 30px 16px 60px;
-    background-color: var(--bg);
-    color: var(--text-main);
+    background-color: var(--bg); color: var(--text-main);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     line-height: 1.6;
   }
-  .wrap { max-width: 960px; margin: 0 auto; }
+  .wrap { max-width: 1000px; margin: 0 auto; }
   
   h1 { font-size: 24px; color: var(--accent-blue-dark); text-align: center; margin-bottom: 4px; font-weight: 600; }
   .subtitle { color: var(--text-muted); font-size: 13px; text-align: center; margin-bottom: 30px; }
@@ -44,7 +43,7 @@
   }
 
   /* 布局基础 */
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
   .field { display: flex; flex-direction: column; }
   label { font-size: 13px; color: var(--text-main); margin-bottom: 6px; font-weight: 500; }
   
@@ -57,10 +56,10 @@
   input:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.3); }
   .hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
 
-  /* 开关组件 */
+  /* 开关与勾选 */
   .switch-group {
-    display: flex; align-items: center; gap: 10px; margin-top: 4px;
-    background: var(--panel-inner); padding: 8px 12px; border-radius: 8px;
+    display: flex; align-items: center; gap: 10px;
+    background: var(--panel-inner); padding: 8px 12px; border-radius: 8px; height: 40px;
   }
   .switch-group input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent-pink-dark); cursor: pointer;}
   .switch-group label { margin-bottom: 0; cursor: pointer; font-weight: 600;}
@@ -69,9 +68,9 @@
   button {
     margin-top: 20px; padding: 0 24px; height: 44px;
     background: linear-gradient(135deg, var(--accent-blue), var(--accent-pink));
-    color: #fff; border: none; border-radius: 8px;
-    font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s;
-    box-shadow: var(--shadow); display: inline-flex; align-items: center; justify-content: center;
+    color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: all 0.3s; box-shadow: var(--shadow);
+    display: inline-flex; align-items: center; justify-content: center;
   }
   button:hover { opacity: 0.9; transform: translateY(-1px); }
   button.ghost { background: var(--panel); color: var(--text-main); border: 1px solid var(--border); box-shadow: none; }
@@ -80,14 +79,22 @@
 
   /* 玩家列表 */
   .player-header {
-    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 40px;
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1.2fr 40px;
     gap: 10px; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; padding: 0 4px; font-weight: 500;
   }
   .player-row {
-    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 40px;
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1.2fr 40px;
     gap: 10px; margin-bottom: 10px; align-items: center;
   }
-  .player-row input { height: 38px; margin: 0; }
+  .player-row input { height: 38px; margin: 0; padding: 0 8px; font-size: 13px;}
+  
+  /* DEX输入框带准备钩子 */
+  .dex-group { display: flex; align-items: center; gap: 6px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 0 8px; height: 38px;}
+  .dex-group input { border: none; box-shadow: none; padding: 0; height: 100%; background: transparent; }
+  .dex-group input:focus { box-shadow: none; }
+  .dex-group label { margin: 0; font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 2px; cursor: pointer;}
+  .dex-group input[type="checkbox"] { width: 14px; height: 14px; margin: 0; padding: 0;}
+
   .player-row button.del {
     padding: 0; height: 38px; width: 38px; font-size: 14px;
     background: var(--panel); color: var(--text-muted); border: 1px solid var(--border);
@@ -114,6 +121,18 @@
   .card .row:last-child { border-bottom: none; padding-bottom: 0;}
   .card .row .lbl { color: var(--text-muted); font-family: Consolas, monospace; padding-right: 10px; }
   .card .row .val { color: var(--text-main); font-weight: 500; text-align: right;}
+
+  /* 先攻面板 */
+  .initiative-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  .init-item {
+    background: var(--panel-inner); border: 1px solid var(--border);
+    padding: 10px 16px; border-radius: 20px; display: flex; align-items: center; gap: 10px;
+    font-weight: 600; font-size: 14px;
+  }
+  .init-item .dex { font-size: 12px; color: var(--text-muted); font-weight: normal;}
+  .init-item.monster { border-color: var(--accent-pink); background: #fdf2f8; color: var(--accent-pink-dark); }
+  .init-item.player { border-color: var(--accent-blue); background: #eff6ff; color: var(--accent-blue-dark); }
+  .init-icon { font-size: 18px; }
 
   /* 方案列表 */
   .patterns-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-top: 16px; }
@@ -144,33 +163,35 @@
   .penalty-text { font-size: 11px; color: var(--text-muted); display: block; margin-top: 4px; background: rgba(0,0,0,0.03); padding: 2px 6px; border-radius: 4px;}
 
   /* 手机适配 */
-  @media (max-width: 600px) {
+  @media (max-width: 700px) {
     .player-header { display: none; }
     .player-row { 
-      grid-template-columns: 1.5fr 1fr 1fr 40px; 
-      grid-template-rows: auto auto; gap: 8px;
+      grid-template-columns: 1fr 1fr 40px; 
+      grid-template-rows: auto auto auto; gap: 8px;
       background: var(--panel); padding: 12px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 12px;
     }
     .player-row input.p-dmg { grid-column: 1 / 3; }
-    .player-row input.p-hit { grid-column: 3 / 5; }
-    .player-row input.p-hp { grid-column: 1 / 2; }
-    .player-row input.p-att { grid-column: 2 / 3; }
-    .player-row button.del { grid-column: 4 / 5; grid-row: 2; height: 38px; width: 100%;}
+    .player-row input.p-hit { grid-column: 1 / 2; }
+    .player-row input.p-hp { grid-column: 2 / 3; }
+    .player-row input.p-att { grid-column: 1 / 2; }
+    .player-row .dex-group { grid-column: 2 / 3; }
+    .player-row button.del { grid-column: 3 / 4; grid-row: 1; height: 38px; width: 100%;}
   }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>🎲 COC 怪物期望计算器</h1>
-  <p class="subtitle">支持多动惩罚、寡不敌众、怪物固定动数</p>
+  <h1>🎲 COC 战斗期望计算器</h1>
+  <p class="subtitle">支持多怪物、先攻排序、枪械准备、围攻与减伤规则</p>
 
   <!-- 玩家列表 -->
   <h2>① 调查员列表</h2>
   <div class="player-header">
     <div>伤害表达式</div>
-    <div>基础命中 %</div>
+    <div>命中 %</div>
     <div>HP</div>
-    <div>每轮动数</div>
+    <div>动数</div>
+    <div>DEX (准备+50)</div>
     <div></div>
   </div>
   <div id="playerList"></div>
@@ -180,10 +201,24 @@
   <h2>② 怪物配置与规则</h2>
   <div class="grid">
     <div class="field">
-      <label>怪物每轮总动数</label>
-      <input id="monsterActions" type="number" value="2" min="1" max="5" step="1">
-      <div class="hint">怪物的行动上限，方案不会超发</div>
+      <label>怪物数量</label>
+      <input id="monsterCount" type="number" value="1" min="1" max="10" step="1" onchange="calc()">
     </div>
+    <div class="field">
+      <label>单只怪物每轮动数</label>
+      <input id="monsterActions" type="number" value="2" min="1" max="5" step="1">
+    </div>
+    <div class="field">
+      <label>怪物敏捷 (DEX)</label>
+      <input id="monsterDex" type="number" value="50" min="1" max="99">
+    </div>
+    <div class="field">
+      <label>怪物护甲 (每击减免)</label>
+      <input id="monsterArmor" type="number" value="0" min="0" max="20">
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top: 16px;">
     <div class="field">
       <label>技能数量</label>
       <div class="radio-group">
@@ -205,18 +240,18 @@
   <div class="field" style="margin-top: 16px;">
     <div class="switch-group">
       <input type="checkbox" id="outnumberedCheck" onchange="toggleOutnumbered()">
-      <label for="outnumberedCheck">开启“寡不敌众”规则</label>
+      <label for="outnumberedCheck">开启“寡不敌众”规则（怪物数量>1时生效）</label>
     </div>
   </div>
   
   <div class="grid" id="outnumberedFields" style="display:none; margin-top: 12px; background: var(--panel); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
     <div class="field">
-      <label>玩家攻击奖励骰数 (围攻怪物)</label>
+      <label>玩家攻击奖励骰数</label>
       <input id="playerBonusDice" type="number" value="1" min="0" max="2">
       <div class="hint">抵消玩家多动惩罚</div>
     </div>
     <div class="field">
-      <label>怪物攻击奖励骰数 (被围攻)</label>
+      <label>怪物攻击奖励骰数</label>
       <input id="monsterBonusDice" type="number" value="1" min="0" max="2">
       <div class="hint">增加怪物命中率</div>
     </div>
@@ -228,13 +263,14 @@
     <div class="field">
       <label>希望怪物造成的总伤害</label>
       <input id="totalDamage" type="number" value="40" min="1">
+      <div class="hint">所有怪物加起来对队伍的总伤害</div>
     </div>
     <div class="field">
       <label>希望战斗持续轮数 T</label>
       <input id="rounds" type="number" value="4" min="1" step="1">
     </div>
     <div class="field">
-      <label>怪物 HP 难度系数</label>
+      <label>怪物总 HP 难度系数</label>
       <input id="difficulty" type="number" value="1" min="0.1" step="0.1">
     </div>
   </div>
@@ -245,11 +281,15 @@
   </div>
 
   <div id="output" style="display:none; margin-top: 40px;">
-    <h2>④ 怪物数值与玩家承受</h2>
+    
+    <h2>④ 行动顺序 (Initiative)</h2>
+    <div class="initiative-list" id="initiativeList"></div>
+
+    <h2>⑤ 怪物数值与玩家承受</h2>
     <div class="cards" id="summaryCards"></div>
 
-    <h2>⑤ 可行的技能方案</h2>
-    <p class="hint" style="margin-top:-8px; margin-bottom: 16px;">已严格限制总动数。按伤害偏差排序。</p>
+    <h2>⑥ 可行的技能方案 (单只怪物)</h2>
+    <p class="hint" style="margin-top:-8px; margin-bottom: 16px;">方案已考虑怪物数量与总伤害分配。</p>
     <div class="patterns-grid" id="patterns"></div>
   </div>
 </div>
@@ -289,81 +329,53 @@ function parseDice(expr){
   return {avg,min,max,expr};
 }
 
-/* ============ 核心：COC 7版 概率计算（支持奖励/惩罚混合） ============ */
-// netDice: 正数为惩罚骰（取高），负数为奖励骰（取低），0为无
+/* ============ COC 7版 概率计算 ============ */
 function getEffectiveHitRate(basePct, netDice) {
   if (basePct <= 0) return 0;
   if (basePct >= 100) return 1;
-  
   const t = Math.floor(basePct / 10);
   const u = basePct % 10;
-  
   if (netDice === 0) return basePct / 100;
   
-  // 简化的多重骰子概率模型
-  // 如果是惩罚骰（netDice > 0），即掷 (netDice + 1) 个十位骰取最大
-  // 如果是奖励骰（netDice < 0），即掷 (|netDice| + 1) 个十位骰取最小
   const numDice = Math.abs(netDice) + 1;
   let prob = 0;
-  
   if (netDice > 0) {
-    // 惩罚：取高
-    // P(十位 = k) = ((k+1)^n - k^n) / 100^n
-    // 我们只算个位成功概率即可
     for (let k = 0; k <= t; k++) {
       const ways = Math.pow(k + 1, numDice) - Math.pow(k, numDice);
-      if (k === t) {
-        // 如果十位刚好等于 t，还要看个位是否 <= u
-        prob += (ways / Math.pow(10, numDice)) * ((u + 1) / 10);
-      } else {
-        // 如果十位小于 t，个位必定成功
-        prob += (ways / Math.pow(10, numDice));
-      }
+      if (k === t) prob += (ways / Math.pow(10, numDice)) * ((u + 1) / 10);
+      else prob += (ways / Math.pow(10, numDice));
     }
   } else {
-    // 奖励：取低
-    // P(十位 = k) = ((10-k)^n - (9-k)^n) / 100^n
-    // 注意：取低的话，当且仅当最小十位 < t 必定成功；== t 需要个位； > t 失败
     for (let k = 0; k <= t; k++) {
       const ways = Math.pow(10 - k, numDice) - Math.pow(9 - k, numDice);
-      if (k === t) {
-        prob += (ways / Math.pow(10, numDice)) * ((u + 1) / 10);
-      } else {
-        prob += (ways / Math.pow(10, numDice));
-      }
+      if (k === t) prob += (ways / Math.pow(10, numDice)) * ((u + 1) / 10);
+      else prob += (ways / Math.pow(10, numDice));
     }
   }
   return prob;
 }
 
-/* ============ 庞大且致命的候选伤害池 ============ */
+/* ============ 候选伤害池 ============ */
 const DICE_POOL = [
-  {expr:'1',avg:1,min:1,max:1}, {expr:'2',avg:2,min:2,max:2},
-  {expr:'1D3',avg:2,min:1,max:3}, {expr:'1D4',avg:2.5,min:1,max:4},
-  {expr:'1D4+1',avg:3.5,min:2,max:5}, {expr:'1D6',avg:3.5,min:1,max:6},
-  {expr:'1D6+1',avg:4.5,min:2,max:7}, {expr:'1D8',avg:4.5,min:1,max:8},
-  {expr:'1D10',avg:5.5,min:1,max:10}, {expr:'2D4+1',avg:6,min:3,max:9},
-  {expr:'2D6',avg:7,min:2,max:12}, {expr:'1D10+2',avg:7.5,min:3,max:12},
-  {expr:'3D4',avg:7.5,min:3,max:12}, {expr:'2D6+1',avg:8,min:3,max:13},
-  {expr:'1D8+1D6',avg:8,min:2,max:14}, {expr:'2D6+2',avg:9,min:4,max:14},
-  {expr:'2D8',avg:9,min:2,max:16}, {expr:'2D6+3',avg:10,min:5,max:15},
-  {expr:'3D6',avg:10.5,min:3,max:18}, {expr:'2D8+1',avg:10,min:3,max:17},
-  {expr:'3D6+2',avg:12.5,min:5,max:20}, {expr:'4D6',avg:14,min:4,max:24},
-  {expr:'3D8',avg:13.5,min:3,max:24}, {expr:'2D10+1D6',avg:14.5,min:3,max:26},
-  {expr:'5D6',avg:17.5,min:5,max:30}, {expr:'4D8',avg:18,min:4,max:32},
-  {expr:'3D10+2D6',avg:23.5,min:5,max:42}, {expr:'6D6',avg:21,min:6,max:36},
-  {expr:'5D8',avg:22.5,min:5,max:40}, {expr:'4D10',avg:22,min:4,max:40},
-  {expr:'8D6',avg:28,min:8,max:48}, {expr:'6D10',avg:33,min:6,max:60},
-  {expr:'8D8',avg:36,min:8,max:64}, {expr:'10D6',avg:35,min:10,max:60},
-  {expr:'8D10',avg:44,min:8,max:80}, {expr:'12D6',avg:42,min:12,max:72},
-  {expr:'10D10',avg:55,min:10,max:100}, {expr:'12D10',avg:66,min:12,max:120},
-  {expr:'15D10',avg:82.5,min:15,max:150}, {expr:'20D10',avg:110,min:20,max:200}
+  {expr:'1',avg:1,min:1,max:1}, {expr:'2',avg:2,min:2,max:2}, {expr:'1D3',avg:2,min:1,max:3},
+  {expr:'1D4',avg:2.5,min:1,max:4}, {expr:'1D4+1',avg:3.5,min:2,max:5}, {expr:'1D6',avg:3.5,min:1,max:6},
+  {expr:'1D6+1',avg:4.5,min:2,max:7}, {expr:'1D8',avg:4.5,min:1,max:8}, {expr:'1D10',avg:5.5,min:1,max:10},
+  {expr:'2D4+1',avg:6,min:3,max:9}, {expr:'2D6',avg:7,min:2,max:12}, {expr:'1D10+2',avg:7.5,min:3,max:12},
+  {expr:'3D4',avg:7.5,min:3,max:12}, {expr:'2D6+1',avg:8,min:3,max:13}, {expr:'1D8+1D6',avg:8,min:2,max:14},
+  {expr:'2D6+2',avg:9,min:4,max:14}, {expr:'2D8',avg:9,min:2,max:16}, {expr:'2D6+3',avg:10,min:5,max:15},
+  {expr:'3D6',avg:10.5,min:3,max:18}, {expr:'2D8+1',avg:10,min:3,max:17}, {expr:'3D6+2',avg:12.5,min:5,max:20},
+  {expr:'4D6',avg:14,min:4,max:24}, {expr:'3D8',avg:13.5,min:3,max:24}, {expr:'2D10+1D6',avg:14.5,min:3,max:26},
+  {expr:'5D6',avg:17.5,min:5,max:30}, {expr:'4D8',avg:18,min:4,max:32}, {expr:'3D10+2D6',avg:23.5,min:5,max:42},
+  {expr:'6D6',avg:21,min:6,max:36}, {expr:'5D8',avg:22.5,min:5,max:40}, {expr:'4D10',avg:22,min:4,max:40},
+  {expr:'8D6',avg:28,min:8,max:48}, {expr:'6D10',avg:33,min:6,max:60}, {expr:'8D8',avg:36,min:8,max:64},
+  {expr:'10D6',avg:35,min:10,max:60}, {expr:'8D10',avg:44,min:8,max:80}, {expr:'12D6',avg:42,min:12,max:72},
+  {expr:'10D10',avg:55,min:10,max:100}, {expr:'12D10',avg:66,min:12,max:120}, {expr:'15D10',avg:82.5,min:15,max:150}
 ];
 
 /* ============ 界面逻辑 ============ */
 let playerIdCounter = 0;
 
-function addPlayer(dmg='1D6', hit=60, hp=12, att=1){
+function addPlayer(dmg='1D6', hit=60, hp=12, att=1, dex=50, ready=false){
   const id = ++playerIdCounter;
   const row = document.createElement('div');
   row.className = 'player-row';
@@ -373,6 +385,12 @@ function addPlayer(dmg='1D6', hit=60, hp=12, att=1){
     <input class="p-hit" type="number" value="${hit}" min="0" max="100" placeholder="命中%">
     <input class="p-hp" type="number" value="${hp}" min="1" placeholder="HP">
     <input class="p-att" type="number" value="${att}" min="1" max="3" placeholder="动数">
+    
+    <div class="dex-group">
+      <input class="p-dex" type="number" value="${dex}" min="1" max="99" placeholder="DEX">
+      <label><input class="p-ready" type="checkbox" ${ready?'checked':''}>准备</label>
+    </div>
+    
     <button class="del" onclick="removePlayer(${id})">✕</button>
   `;
   document.getElementById('playerList').appendChild(row);
@@ -393,39 +411,36 @@ function toggleOutnumbered(){
   document.getElementById('outnumberedFields').style.display = isChecked ? 'grid' : 'none';
 }
 
-/* ============ 生成技能方案（严格限制动数） ============ */
-function generateSkillPatterns(targetActualDPR, skillCount, effHit1, effHit2, maxActions){
+/* ============ 生成方案 ============ */
+function generateSkillPatterns(targetDPR, skillCount, effHit1, effHit2, maxActions, armor){
   const results = [];
-  
-  // 枚举可能的技能动作分配 (n1 + n2 <= maxActions)
   const combos = [];
   for(let n1=0; n1<=maxActions; n1++){
     for(let n2=0; n2<=maxActions - n1; n2++){
-      if(n1 + n2 === 0) continue; // 至少动一次
-      if(skillCount === 1 && n2 > 0) continue; // 只有1个技能时 n2 必须为 0
-      combos.push({n1, n2});
+      if(n1 + n2 === 0) continue;
+      if(skillCount === 1 && n2 > 0) continue;
+      combos1.push({n1 , n2});
     }
   }
 
-  for(const combo of combos){
+ 攻 for(const combo of combos){
     let best = null;
     if(skillCount === 1){
       for(const e of DICE_POOL){
-        const total = combo.n1 * effHit1 * e.avg;
-        const err = Math.abs(total - targetActualDPR);
+        const total = combo.n1 * effHit1 * Math.max(0, e.avg - armor);
+        const err = Math.abs(total - targetDPR);
         if(!best || err < best.err) best = {e1:e, e2:null, total, err, penalty:0};
       }
     } else {
       for(const e1 of DICE_POOL){
-        // 如果该方案里技能2用不到，直接跳过深层循环优化性能
         if(combo.n2 === 0){
-          const total = combo.n1 * effHit1 * e1.avg;
-          const err = Math.abs(total - targetActualDPR);
+          const total = combo.n1 * effHit1 * Math.max(0, e1.avg - armor);
+          const err = Math.abs(total - targetDPR);
           if(!best || err < best.err) best = {e1, e2:null, total, err, penalty:0};
         } else {
           for(const e2 of DICE_POOL){
-            const total = combo.n1 * effHit1 * e1.avg + combo.n2 * effHit2 * e2.avg;
-            const err = Math.abs(total - targetActualDPR);
+            const total = combo.n1 * effHit1 * Math.max(0, e1.avg - armor) + combo.n2 * effHit2 * Math.max(0, e2.avg - armor);
+            const err = Math.abs(total - targetDPR);
             const boring = e1.expr === e2.expr && combo.n1 > 0 && combo.n2 > 0;
             const penalty = boring ? 1000 : 0;
             if(!best || (err+penalty) < (best.err+best.penalty)){
@@ -450,12 +465,12 @@ function generateSkillPatterns(targetActualDPR, skillCount, effHit1, effHit2, ma
 function describeCombo(n1, n2){
   if(n2 === 0) return `技能1 攻击 ${n1} 次`;
   if(n1 === 0) return `技能2 攻击 ${n2} 次`;
-  return `技能1 攻击 ${n1} 次 + 技能2 攻击 ${n2} 次`;
+  return `技能 ${n1} 次 + 技能2 攻 ${n2} 次`;
 }
 
 /* ============ 主计算 ============ */
 function calc(){
-  // 1. 抓取玩家数据
+  // 1. 玩家数据
   const rows = document.querySelectorAll('.player-row');
   const players = [];
   const P = rows.length;
@@ -469,25 +484,30 @@ function calc(){
     const hitPct = parseFloat(row.querySelector('.p-hit').value);
     const hp = parseFloat(row.querySelector('.p-hp').value);
     const att = parseInt(row.querySelector('.p-att').value) || 1;
+    const dex = parseInt(row.querySelector('.p-dex').value) || 50;
+    const isReady = row.querySelector('.p-ready').checked;
     
     if(isNaN(hitPct) || hitPct < 0 || hitPct > 100){ alert('命中率需在 0~100 之间'); return; }
     if(isNaN(hp) || hp <= 0){ alert('HP 必须大于 0'); return; }
 
-    players.push({ expr: dice.expr, dmgAvg: dice.avg, baseHitPct: hitPct, hp, att });
+    players.push({ expr: dice.expr, dmgAvg: dice.avg, baseHitPct: hitPct, hp, att, dex, isReady });
   }
   if(players.length === 0){ alert('请至少添加一个玩家'); return; }
 
-  // 2. 抓取怪物配置与规则
+  // 2. 怪物配置
+  const M = Math.max(1, parseInt(document.getElementById('monsterCount').value) || 1);
   const maxActions = Math.max(1, parseInt(document.getElementById('monsterActions').value) || 1);
+  const monsterDex = parseInt(document.getElementById('monsterDex').value) || 50;
+  const monsterArmor = Math.max(0, parseInt(document.getElementById('monsterArmor').value) || 0);
+  
   const skillCount = parseInt(document.querySelector('input[name="skillCount"]:checked').value);
   const baseHit1 = Math.max(0, Math.min(1, parseFloat(document.getElementById('skillHit1').value)/100));
   const baseHit2 = skillCount === 2 ? Math.max(0, Math.min(1, parseFloat(document.getElementById('skillHit2').value)/100)) : 0;
   
   const isOutnumbered = document.getElementById('outnumberedCheck').checked;
-  const playerBonus = isOutnumbered ? (parseInt(document.getElementById('playerBonusDice').value) || 0) : 0;
-  const monsterBonus = isOutnumbered ? (parseInt(document.getElementById('monsterBonusDice').value) || 0) : 0;
+  const playerBonus = (isOutnumbered && M > 1) ? (parseInt(document.getElementById('playerBonusDice').value) || 0) : 0;
+  const monsterBonus = (isOutnumbered && P > 1) ? (parseInt(document.getElementById('monsterBonusDice').value) || 0) : 0;
 
-  // 怪物真实有效命中率（考虑怪物打多个玩家的寡不敌众奖励）
   const effHit1 = getEffectiveHitRate(baseHit1 * 100, -monsterBonus);
   const effHit2 = getEffectiveHitRate(baseHit2 * 100, -monsterBonus);
 
@@ -497,15 +517,14 @@ function calc(){
   const diff = Math.max(0.1, parseFloat(document.getElementById('difficulty').value) || 1);
   if(isNaN(D) || D <= 0){ alert('总伤害需大于 0'); return; }
 
-  // 4. 计算玩家真实输出
+  // 4. 玩家输出计算 & 先攻数据准备
   let playerDPS = 0;
+  const initiativeList = [];
+
   const playerRowsHTML = players.map((p,i) => {
     let totalHitPct = 0;
     const hitDetails = [];
-    
     for(let j=0; j<p.att; j++) {
-      // 第j动，多动惩罚为 j；寡不敌众奖励为 playerBonus
-      // 净惩罚骰数 = 多动惩罚 - 奖励
       const netDice = j - playerBonus; 
       const rate = getEffectiveHitRate(p.baseHitPct, netDice) * 100;
       totalHitPct += rate;
@@ -515,6 +534,10 @@ function calc(){
     const dps = p.dmgAvg * (totalHitPct / 100);
     playerDPS += dps;
 
+    // 先攻计算：DEX + 准备(50)
+    const ini = p.dex + (p.isReady ? 50 : 0);
+    initiativeList.push({ name: `玩家 ${i+1}`, type: 'player', ini: ini, dex: p.dex, isReady: p.isReady });
+
     const surviveRounds = p.hp / (D / T / P);
     const willDie = surviveRounds < T - 0.01;
     const death = willDie
@@ -523,56 +546,77 @@ function calc(){
       
     const attText = p.att > 1 ? `[${p.att}动]` : '';
     const bonusText = playerBonus > 0 ? ` + ${playerBonus}奖` : '';
-    const netText = hitDetails.join(' + ');
     
     return `<div class="row">
-      <span class="lbl">玩家${i+1} · ${p.expr} @ ${p.baseHitPct}% ${attText}${bonusText}</span>
+      <span class="lbl">玩家${i+1} · ${p.expr} @${p.baseHitPct}% ${attText}${bonusText}</span>
       <span class="val">
         DPS: ${f1(dps)} · HP ${p.hp} ${death}
-        ${p.att > 1 || playerBonus > 0 ? `<span class="penalty-text">各动实际命中: ${netText}</span>` : ''}
+        ${p.att > 1 || playerBonus > 0 ? `<span class="penalty-text">各动实际命中: ${hitDetails.join(' + ')}</span>` : ''}
       </span>
     </div>`;
   }).join('');
 
-  // 5. 怪物数值
-  const monsterHP = playerDPS * T * diff;
-  const hpLow = monsterHP * 0.8, hpHigh = monsterHP * 1.2;
-  const targetActualDPR = D / T;
+  // 怪物先攻
+  for(let i=0; i<M; i++){
+    initiativeList.push({ name: `怪物 ${i+1}`, type: 'monster', ini: monsterDex, dex: monsterDex, isReady: false });
+  }
+
+  // 先攻排序（从高到低，同值按玩家优先）
+  initiativeList.sort((a, b) => {
+    if (b.ini !== a.ini) return b.ini - a.ini;
+    return a.type === 'player' ? -1 : 1;
+  });
+
+  const initHTML = initiativeList.map(item => `
+    <div class="init-item ${item.type}">
+      <span class="init-icon">${item.type === 'player' ? (item.isReady ? '🔫' : '🏃') : '👾'}</span>
+      <span>${item.name}</span>
+      <span class="dex">(先攻 ${item.ini})</span>
+    </div>
+  `).join('');
+  document.getElementById('initiativeList').innerHTML = initHTML;
+
+  // 5. 怪物数值计算
+  const monsterHP_Total = playerDPS * T * diff;
+  const monsterHP_Each = monsterHP_Total / M;
+  
+  const targetActualDPR_Total = D / T;
+  const targetActualDPR_Each = targetActualDPR_Total / M;
   const damagePerPlayer = D / P;
+
   const totalPlayerHP = players.reduce((s,p)=>s+p.hp,0);
   const isTeamWipe = D >= totalPlayerHP;
 
-  // 6. 生成方案
-  const patterns = generateSkillPatterns(targetActualDPR, skillCount, effHit1, effHit2, maxActions);
+  // 6. 方案生成（针对单只怪物）
+  const patterns = generateSkillPatterns(targetActualDPR_Each, skillCount, effHit1, effHit2, maxActions, monsterArmor);
 
   // ===== 渲染 =====
   const summaryHTML = `
     <div class="card wide">
-      <div class="k">调查员每轮总 DPS（已计入所有多动和围攻规则）</div>
+      <div class="k">调查员每轮总 DPS（已计入多动与围攻）</div>
       <div class="v">${f1(playerDPS)}</div>
       <div class="sub" style="margin-top:12px">${playerRowsHTML}</div>
     </div>
     <div class="card">
-      <div class="k">怪物 HP 期望</div>
-      <div class="v">${f0(monsterHP)}</div>
-      <div class="sub">建议浮动区间 ${f0(hpLow)} ~ ${f0(hpHigh)}</div>
+      <div class="k">怪物 HP 期望 (每只)</div>
+      <div class="v">${f0(monsterHP_Each)}</div>
+      <div class="sub">总计 ${f0(monsterHP_Total)}</div>
     </div>
     <div class="card">
-      <div class="k">怪物每轮目标实际伤害</div>
-      <div class="v">${f1(targetActualDPR)}</div>
-      <div class="sub">总伤害 ${f0(D)} / ${T} 轮</div>
+      <div class="k">怪物每轮目标总伤害</div>
+      <div class="v">${f1(targetActualDPR_Total)}</div>
+      <div class="sub">总计 ${f0(D)} 伤害 / ${T} 轮</div>
+    </div>
+    <div class="card">
+      <div class="k">单只怪物每轮需造成</div>
+      <div class="v">${f1(targetActualDPR_Each)}</div>
+      <div class="sub">共 ${M} 只怪物</div>
     </div>
     <div class="card">
       <div class="k">每个玩家预期承受</div>
       <div class="v">${f1(damagePerPlayer)}</div>
-      <div class="sub">共 ${P} 名玩家，均等分摊</div>
-    </div>
-    <div class="card">
-      <div class="k">玩家总 HP 承受力</div>
-      <div class="v ${isTeamWipe?'danger':''}">${f0(totalPlayerHP)}</div>
-      <div class="sub">${isTeamWipe
-        ? '<span class="warn">⚠️ 致死量：伤害总和 ≥ 总 HP</span>'
-        : `<span class="ok">✓ 预计存活，剩余 ${f0(totalPlayerHP - D)} HP</span>`}</div>
+      <div class="sub">总 HP ${f0(totalPlayerHP)}</div>
+      <div class="sub">${isTeamWipe ? '<span class="warn">⚠ 致死量</span>' : `<span class="ok">✓ 预计存活</span>`}</div>
     </div>
   `;
   document.getElementById('summaryCards').innerHTML = summaryHTML;
@@ -585,34 +629,38 @@ function calc(){
 
     let skillBlocks = '';
     if(p.n1 > 0) {
+      const finalDmg1 = Math.max(0, p.e1.avg - monsterArmor);
       skillBlocks += `
         <div class="skill-block">
-          <div class="skill-title"><span>技能 1</span><span>基础命中 ${(baseHit1*100).toFixed(0)}% ➔ 修正后 ${f1(effHit1*100)}%</span></div>
-          <div class="skill-line"><span class="lbl">伤害骰</span><span class="val">${p.e1.expr}（期望 ${f1(p.e1.avg)}）</span></div>
+          <div class="skill-title"><span>技能 1</span><span>修正命中 ${f1(effHit1*100)}%</span></div>
+          <div class="skill-line"><span class="lbl">伤害骰</span><span class="val">${p.e1.expr} (均${f1(p.e1.avg)})</span></div>
+          ${monsterArmor > 0 ? `<div class="skill-line"><span class="lbl">穿甲后</span><span class="val">${f1(finalDmg1)}</span></div>` : ''}
           <div class="skill-line"><span class="lbl">分配动数</span><span class="val">${p.n1} 动</span></div>
-          <div class="skill-line"><span class="lbl">实际贡献</span><span class="val">${f1(p.n1*effHit1*p.e1.avg)}</span></div>
+          <div class="skill-line"><span class="lbl">实际贡献</span><span class="val">${f1(p.n1*effHit1*finalDmg1)}</span></div>
         </div>`;
     }
     if(p.n2 > 0) {
+      const finalDmg2 = Math.max(0, p.e2.avg - monsterArmor);
       skillBlocks += `
         <div class="skill-block">
-          <div class="skill-title"><span>技能 2</span><span>基础命中 ${(baseHit2*100).toFixed(0)}% ➔ 修正后 ${f1(effHit2*100)}%</span></div>
-          <div class="skill-line"><span class="lbl">伤害骰</span><span class="val">${p.e2.expr}（期望 ${f1(p.e2.avg)}）</span></div>
+          <div class="skill-title"><span>技能 2</span><span>修正命中 ${f1(effHit2*100)}%</span></div>
+          <div class="skill-line"><span class="lbl">伤害骰</span><span class="val">${p.e2.expr} (均${f1(p.e2.avg)})</span></div>
+          ${monsterArmor > 0 ? `<div class="skill-line"><span class="lbl">穿甲后</span><span class="val">${f1(finalDmg2)}</span></div>` : ''}
           <div class="skill-line"><span class="lbl">分配动数</span><span class="val">${p.n2} 动</span></div>
-          <div class="skill-line"><span class="lbl">实际贡献</span><span class="val">${f1(p.n2*effHit2*p.e2.avg)}</span></div>
+          <div class="skill-line"><span class="lbl">实际贡献</span><span class="val">${f1(p.n2*effHit2*finalDmg2)}</span></div>
         </div>`;
     }
 
     return `
       <div class="pattern ${isBest?'best':''}">
-        <span class="tag">${isBest?'★ 最佳匹配':'备选方案 '+String.fromCharCode(65+idx)}</span>
+        <span class="tag">${isBest?'★ 最佳匹配 (单只)':'备选方案 '+String.fromCharCode(65+idx)}</span>
         <div class="style">${style}</div>
         ${skillBlocks}
         <div class="total">
-          <span class="lbl">总实际每轮伤害</span>
+          <span class="lbl">单只实际每轮伤害</span>
           <span class="val">${f1(p.total)}</span>
         </div>
-        <div class="err ${errClass}">${errText}（目标 ${f1(targetActualDPR)}）</div>
+        <div class="err ${errClass}">${errText}（目标单只 ${f1(targetActualDPR_Each)}）</div>
       </div>`;
   }).join('');
   document.getElementById('patterns').innerHTML = patternsHTML;
@@ -623,31 +671,35 @@ function calc(){
 /* ============ 重置 ============ */
 function resetAll(){
   document.getElementById('playerList').innerHTML = '';
-  addPlayer('1D6', 60, 12, 1);
-  addPlayer('1D8', 50, 11, 2);
-  addPlayer('2D6', 55, 13, 3);
+  addPlayer('1D6', 60, 12, 1, 50, false);
+  addPlayer('1D8', 50, 11, 2, 60, true); // 准备
+  addPlayer('2D6', 55, 13, 3, 40, false);
+  
+  document.getElementById('monsterCount').value = 2;
   document.getElementById('monsterActions').value = 2;
+  document.getElementById('monsterDex').value = 50;
+  document.getElementById('monsterArmor').value = 2;
+  
   document.getElementById('skillHit1').value = 60;
   document.getElementById('skillHit2').value = 40;
-  document.getElementById('totalDamage').value = 40;
+  
+  document.getElementById('totalDamage').value = 60;
   document.getElementById('rounds').value = 4;
   document.getElementById('difficulty').value = 1;
   
-  document.getElementById('outnumberedCheck').checked = false;
+  document.getElementById('outnumberedCheck').checked = true;
   document.getElementById('playerBonusDice').value = 1;
   document.getElementById('monsterBonusDice').value = 1;
   toggleOutnumbered();
-
-  document.querySelector('input[name="skillCount"][value="2"]').checked = true;
   toggleSkill2();
-  document.getElementById('output').style.display = 'none';
+  calc();
 }
 
 /* ============ 初始化 ============ */
 window.onload = function(){
-  addPlayer('1D6', 60, 12, 1);
-  addPlayer('1D8', 50, 11, 2);
-  addPlayer('2D6', 55, 13, 3);
+  addPlayer('1D6', 60, 12, 1, 50, false);
+  addPlayer('1D8', 50, 11, 2, 60, true);
+  addPlayer('2D6', 55, 13, 3, 40, false);
   toggleSkill2();
   toggleOutnumbered();
   calc();
